@@ -5,4 +5,33 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
+
+    <!--HOME ACTIVITY-->
+    <!--TabLayout-->
+    <string name="home_tab_0_label">ACCIDENT</string>
+    <string name="home_tab_1_label">RECORDS</string>
+    <string name="record_location">Record Location</string>
+    <string name="record_date">Record Location</string>
+    <string name="contentDescription">meh</string>
+    <string name="welcome_info_label_0">WelcomeLabel</string>
+    <string name="enter_record_location">enter location</string>
+
+    <!--WELCOME ACTIVITY-->
+    <string name="next">NEXT</string>
+    <string name="skip">SKIP</string>
+    <string name="start">GOT IT</string>
+
+    <string name="slide_1_title">Drive Slow!</string>
+    <string name="slide_1_desc">Drive only below the allowed speed!</string>
+
+    <string name="slide_2_title">Safty First!</string>
+    <string name="slide_2_desc">You might be rushing but what is the benefit if you die!</string>
+
+    <string name="slide_3_title">Save Life</string>
+    <string name="slide_3_desc">drive carefully so you don\'t kill other!</string>
+
+    <string name="slide_4_title">Report Fast!</string>
+    <string name="slide_4_desc">If accident happen save your record!</string>
+
+    <string name="play_again">Play Again</string>
 </resources>

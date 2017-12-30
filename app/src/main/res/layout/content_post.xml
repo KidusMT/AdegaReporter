@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="10dp"
+    android:fillViewport="true"
+    tools:showIn="@layout/activity_post"
+    tools:context=".ui.post.PostActivity">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+            <EditText
+                android:id="@+id/record_location"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:hint="enter location" />
+
+            <EditText
+                android:id="@+id/record_date_picker"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:editable="false"
+                android:focusable="false"
+                android:hint="pick a date" />
+
+            <EditText
+                android:id="@+id/record_plate_number"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="plate number" />
+
+            <EditText
+                android:id="@+id/record_description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="top|left"
+                android:hint="description"
+                android:inputType="textCapSentences|textMultiLine" />
+
+            <Button
+                android:id="@+id/btn_record"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/colorAccent"
+                android:text="SAVE RECORD"
+                android:textColor="@color/white" />
+
+    </LinearLayout>
+
+
+
+</ScrollView>
