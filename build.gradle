@@ -3,6 +3,8 @@
 buildscript {
     ext.objectboxVersion = '1.2.1'
     ext.supportLibraryVersion = '26.1.0'
+    ext.rxjavaVersion = '2.1.6'
+    ext.rxandroidVersion = '2.0.1'
 
     repositories {
         google()

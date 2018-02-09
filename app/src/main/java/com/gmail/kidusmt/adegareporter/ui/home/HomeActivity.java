@@ -3,18 +3,15 @@ package com.gmail.kidusmt.adegareporter.ui.home;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.view.View;
-import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -31,7 +28,10 @@ public class HomeActivity extends BaseActivity
 
     private TabLayout tabLayout;
     private ViewPager viewPager;
-    private FloatingActionButton fab_add;
+    private int[] tabIcons = {
+            R.drawable.ic_tab_accident,
+            R.drawable.ic_tab_records
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,11 +41,6 @@ public class HomeActivity extends BaseActivity
         //The toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        //The add floating action Button
-        fab_add = findViewById(R.id.fab);
-        fab_add.setOnClickListener(
-                view -> startActivity(new Intent(this, PostActivity.class)));
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -58,19 +53,58 @@ public class HomeActivity extends BaseActivity
         viewPager = findViewById(R.id.viewpager);
         setupViewPager(viewPager);
 
+        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                //for setting the title on the toolbar according to the selection
+                if(position==0){
+                    toolbar.setTitle("Accident");
+                }else{
+                    toolbar.setTitle("Records");
+                }
+                //for controlling the image transparency for the tab
+                for(int i = 0; i < tabLayout.getTabCount(); i++){
+                    if(i == position){
+                        tabLayout.getTabAt(i).getIcon().setAlpha(255);//.getCustomView().setAlpha(1);
+                    }else{
+                        tabLayout.getTabAt(i).getIcon().setAlpha(125);//.getCustomView().setAlpha(0.5f);
+                    }
+                }
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
+
         //attaches the viewpager on the tabLayout
         tabLayout = findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
+
+        setupTabIcons();
+
+        //setting the next icon to semi transparent in the beginning
+        tabLayout.getTabAt(1).getIcon().setAlpha(125);
 
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
     }
 
+    private void setupTabIcons() {
+        tabLayout.getTabAt(0).setIcon(tabIcons[0]);
+        tabLayout.getTabAt(1).setIcon(tabIcons[1]);
+    }
+
     private void setupViewPager(ViewPager viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
         //TODO: STRINGS HAVE TO BE CHANGED FROM THE RESOURCE VALUE FOLDER - STRING
-        adapter.addFragment(new FragmentHome(), getResources().getString(R.string.home_tab_0_label));
-        adapter.addFragment(new FragmentRecord(), getResources().getString(R.string.home_tab_1_label));
+        adapter.addFragment(new FragmentTab(), getResources().getString(R.string.home_tab_0_label));
+        adapter.addFragment(new FragmentTab(), getResources().getString(R.string.home_tab_1_label));
 
         viewPager.setAdapter(adapter);
     }

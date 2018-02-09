@@ -1,16 +1,15 @@
 package com.gmail.kidusmt.adegareporter.ui.post;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.Matrix;
-import android.media.ExifInterface;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -21,7 +20,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
-import android.util.Base64;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
@@ -32,11 +30,13 @@ import android.widget.ImageView;
 import com.gmail.kidusmt.adegareporter.R;
 import com.gmail.kidusmt.adegareporter.base.view.BaseActivity;
 import com.gmail.kidusmt.adegareporter.data.Accident;
+import com.gmail.kidusmt.adegareporter.ui.home.HomePresenter;
 import com.gmail.kidusmt.adegareporter.util.App;
+import com.gmail.kidusmt.adegareporter.util.Constants;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -47,12 +47,12 @@ import io.objectbox.Box;
 
 import static android.Manifest.permission.CAMERA;
 
-public class PostActivity extends BaseActivity {
+public class PostActivity extends BaseActivity implements PostContract.View{
 
     Box<Accident> accidentBox = App.boxStore.boxFor(Accident.class);
-    Accident accident;
 
-    Bitmap myBitmap;
+    PostContract.Presenter presenter;
+
     Uri picUri;
     Calendar myCalendar;
     ImageView post_product_img;
@@ -60,7 +60,6 @@ public class PostActivity extends BaseActivity {
     Button btn_save;
     EditText recordDate, recordLocation, recordDescription, recordPlateNumber;
     public DatePickerDialog.OnDateSetListener date;
-    String img_path;
 
     private ArrayList<String> permissionsToRequest;
     private ArrayList<String> permissionsRejected = new ArrayList<>();
@@ -73,13 +72,14 @@ public class PostActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_post);
 
+        presenter = new PostPresenter(this);
+
         //hides the keyboard till the user selects to an edit text
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
         getSupportActionBar().setTitle("");
@@ -87,6 +87,15 @@ public class PostActivity extends BaseActivity {
         CollapsingToolbarLayout collapsingToolbarLayout = findViewById(R.id.post_collapsing_toolbar);
         collapsingToolbarLayout.setTitleEnabled(false);
         collapsingToolbarLayout.setTitle("");
+
+        post_product_img = findViewById(R.id.post_product_img);
+
+//        if (ContextCompat.checkSelfPermission(PostActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
+            //TODO have to insert the imageView  I want to display the image on and disable it
+//            ActivityCompat.requestPermissions(PostActivity.this, new String[] {Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE});
+//        }else{
+            //TODO have to insert the imageView and enable it
+//        }
 
         myCalendar = Calendar.getInstance();
 
@@ -108,25 +117,31 @@ public class PostActivity extends BaseActivity {
                 .get(Calendar.YEAR), myCalendar.get(Calendar.MONTH),
                 myCalendar.get(Calendar.DAY_OF_MONTH)).show());
 
-
-
         FloatingActionButton fab_pic = findViewById(R.id.fab_pick_image);
-        fab_pic.setOnClickListener(view -> startActivityForResult(getPickImageChooserIntent(), 200));
-
+        fab_pic.setOnClickListener(view -> startActivityForResult(getImageChooserIntent(), Constants.SELECT_PHOTO));
 
         btn_save.setOnClickListener(view -> {
+
+            Accident accident_temp = new Accident();
+
             //handles the empty strings not to be inserted
             if (!TextUtils.isEmpty(recordDate.getText()) &&
                     !TextUtils.isEmpty(recordLocation.getText()) &&
                     !TextUtils.isEmpty(recordPlateNumber.getText()) &&
                     !TextUtils.isEmpty(recordDescription.getText())) {
 
-                //call the saveRecord method
-                saveRecord(recordLocation.getText().toString().trim(),
-                        recordDate.getText().toString().trim(),
-                        recordPlateNumber.getText().toString().trim(),
-                        recordDescription.getText().toString().trim());
+                accident_temp.setLocation(recordLocation.getText().toString().trim());
+                accident_temp.setDate(recordDate.getText().toString().trim());
+                accident_temp.setDescription(recordDescription.getText().toString().trim());
+                accident_temp.setImgPath(getRealPathFromURI(picUri));
+                accident_temp.setPlate(recordPlateNumber.getText().toString().trim());
 
+                //TODO show progress bar here
+
+                //call the saveRecord method
+                presenter.onSaveClicked(accident_temp);
+
+                toast("save successful");
             }
         });
 
@@ -138,28 +153,6 @@ public class PostActivity extends BaseActivity {
                 requestPermissions(permissionsToRequest.toArray(new String[permissionsToRequest.size()]),
                         ALL_PERMISSIONS_RESULT);
         }
-    }
-
-    public void saveRecord(String record_location, String record_date, String record_plate_number,
-                         String record_description) {
-        //TODO save the image in the objectBox
-
-        accident = new Accident();
-        accident.setLocation(record_location);
-        accident.setDate(record_date);
-        accident.setPlate(record_plate_number);
-        accident.setDescription(record_description);
-        accident.setImgPath(imagToString());
-        accidentBox.put(accident);//store the image
-
-    }
-
-    //this method already has the image the user has selected from his gallery
-    private String imagToString() {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        myBitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
-        byte[] imgByte = byteArrayOutputStream.toByteArray();
-        return Base64.encodeToString(imgByte, Base64.DEFAULT);
     }
 
     private void updateLabel() {
@@ -178,13 +171,26 @@ public class PostActivity extends BaseActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                finish();
+                presenter.onBackPressed();
                 return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    //DON'T TOUCH THIS METHOD EGIDE!!! -- VERY DANGEROUS! ;)
+    /**
+     * For choosing image for gallery only
+     * @return
+     */
+    public Intent getImageChooserIntent(){
+        Intent intent = new Intent(Intent.ACTION_PICK);
+        intent.setType("image/*");
+        return intent;
+    }
+
+    /**
+     * For choosing image from multiple source
+     * @return
+     */
     public Intent getPickImageChooserIntent() {
 
         // Determine Uri of camera image to save.
@@ -202,8 +208,6 @@ public class PostActivity extends BaseActivity {
             intent.setPackage(res.activityInfo.packageName);
             if (outputFileUri != null) {
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
-                img_path = outputFileUri.getPath().toString();//I added this to check the image path
-//                Log.e("ImageSelected", img_path);
             }
             allIntents.add(intent);
         }
@@ -247,100 +251,72 @@ public class PostActivity extends BaseActivity {
         if (getImage != null) {
             outputFileUri = Uri.fromFile(new File(getImage.getPath(), "profile.png"));
         }
-        img_path = getImage.getPath().toString();
         return outputFileUri;
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-        Bitmap bitmap;
-        if (resultCode == Activity.RESULT_OK) {
+        if(requestCode == Constants.SELECT_PHOTO){
+            if(resultCode == RESULT_OK){
+                try{
+                    final Uri imageUri = data.getData();
+                    final InputStream imageStream = getContentResolver().openInputStream(imageUri);
+                    final Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
 
-            post_product_img = findViewById(R.id.post_product_img);
+                    picUri = imageUri;
+                    //TODO show progress bar here
 
-            if (getPickImageResultUri(data) != null) {
-                picUri = getPickImageResultUri(data);
-
-                try {
-                    myBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), picUri);
-                    myBitmap = rotateImageIfRequired(myBitmap, picUri);
-                    myBitmap = getResizedBitmap(myBitmap, 500);
-
-                    post_product_img.setImageBitmap(myBitmap);
-
-                } catch (IOException e) {
+                    //set image on the imageView
+                    post_product_img.setImageBitmap(selectedImage);
+                }catch (FileNotFoundException e){
                     e.printStackTrace();
                 }
-
-            } else {
-
-                bitmap = (Bitmap) data.getExtras().get("data");
-
-                myBitmap = bitmap;
-
-                post_product_img.setImageBitmap(myBitmap);
-
             }
         }
+
+
+//        Bitmap bitmap;
+//        if (resultCode == Activity.RESULT_OK) {
+//
+//            if (getPickImageResultUri(data) != null) {
+//                picUri = getPickImageResultUri(data);
+//
+//                try {
+//                    myBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), picUri);
+//                    myBitmap = rotateImageIfRequired(myBitmap, picUri);
+//                    myBitmap = getResizedBitmap(myBitmap, 500);
+//
+//                    post_product_img.setImageBitmap(myBitmap);
+//
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//
+//            } else {
+//
+//                bitmap = (Bitmap) data.getExtras().get("data");
+//
+//                myBitmap = bitmap;
+//
+//                post_product_img.setImageBitmap(myBitmap);
+//
+//            }
+//        }
     }
 
-    private static Bitmap rotateImageIfRequired(Bitmap img, Uri selectedImage) throws IOException {
-
-        ExifInterface ei = new ExifInterface(selectedImage.getPath());
-        int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
-
-        switch (orientation) {
-            case ExifInterface.ORIENTATION_ROTATE_90:
-                return rotateImage(img, 90);
-            case ExifInterface.ORIENTATION_ROTATE_180:
-                return rotateImage(img, 180);
-            case ExifInterface.ORIENTATION_ROTATE_270:
-                return rotateImage(img, 270);
-            default:
-                return img;
-        }
-    }
-
-    private static Bitmap rotateImage(Bitmap img, int degree) {
-        Matrix matrix = new Matrix();
-        matrix.postRotate(degree);
-        Bitmap rotatedImg = Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
-        img.recycle();
-        return rotatedImg;
-    }
-
-    public Bitmap getResizedBitmap(Bitmap image, int maxSize) {
-        int width = image.getWidth();
-        int height = image.getHeight();
-
-        float bitmapRatio = (float) width / (float) height;
-        if (bitmapRatio > 0) {
-            width = maxSize;
-            height = (int) (width / bitmapRatio);
+    private String getRealPathFromURI(Uri contentURI) {
+        String result;
+        Cursor cursor = getContentResolver().query(contentURI, null, null, null, null);
+        if (cursor == null) {
+            result = contentURI.getPath();
         } else {
-            height = maxSize;
-            width = (int) (height * bitmapRatio);
+            cursor.moveToFirst();
+            int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
+            result = cursor.getString(idx);
+            cursor.close();
         }
-        return Bitmap.createScaledBitmap(image, width, height, true);
-    }
-
-
-    /**
-     * Get the URI of the selected image from {@link #getPickImageChooserIntent()}.
-     * <p>
-     * Will return the correct URI for camera and gallery image.
-     *
-     * @param data the returned data of the activity result
-     */
-    public Uri getPickImageResultUri(Intent data) {
-        boolean isCamera = true;
-        if (data != null) {
-            String action = data.getAction();
-            isCamera = action != null && action.equals(MediaStore.ACTION_IMAGE_CAPTURE);
-        }
-
-        return isCamera ? getCaptureImageOutputUri() : data.getData();
+        return result;
     }
 
     @Override
@@ -413,15 +389,12 @@ public class PostActivity extends BaseActivity {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                         if (shouldShowRequestPermissionRationale(permissionsRejected.get(0))) {
                             showMessageOKCancel("These permissions are mandatory for the application. Please allow access.",
-                                    new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                    (dialog, which) -> {
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
-                                                //Log.d("API123", "permisionrejected " + permissionsRejected.size());
+                                            //Log.d("API123", "permisionrejected " + permissionsRejected.size());
 
-                                                requestPermissions(permissionsRejected.toArray(new String[permissionsRejected.size()]), ALL_PERMISSIONS_RESULT);
-                                            }
+                                            requestPermissions(permissionsRejected.toArray(new String[permissionsRejected.size()]), ALL_PERMISSIONS_RESULT);
                                         }
                                     });
                             return;
@@ -431,5 +404,10 @@ public class PostActivity extends BaseActivity {
                 break;
         }
 
+    }
+
+    @Override
+    public void closeAddAccident() {
+        finish();
     }
 }

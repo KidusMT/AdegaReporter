@@ -9,6 +9,7 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        vectorDrawables.useSupportLibrary = true
     }
     buildTypes {
         release {
@@ -37,4 +38,7 @@ dependencies {
     implementation "com.pnikosis:materialish-progress:1.7"
     // ObjectBox
     implementation "io.objectbox:objectbox-java:$objectboxVersion"
+    // RxJava and RxAndroid
+    implementation "io.reactivex.rxjava2:rxjava:$rxjavaVersion"
+    implementation "io.reactivex.rxjava2:rxandroid:$rxandroidVersion"
 }

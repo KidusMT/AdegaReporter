@@ -1,6 +1,7 @@
 package com.gmail.kidusmt.adegareporter.base.view;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -60,12 +61,19 @@ public class BaseActivity extends AppCompatActivity {
     }
 
 
-    protected void toast(String message) {
+    /**
+     * Show a toast message, with a default duration length of LENGTH_SHORT.
+     */
+    protected void toast(@NonNull String message) {
         toast(message, Toast.LENGTH_SHORT);
     }
 
 
-    protected void toast(String message, int duration) {
+    /**
+     * Show a toast message, with a custom duration provided via int parameter
+     */
+    protected void toast(@NonNull String message, int duration) {
         Toast.makeText(this, message, duration).show();
     }
+
 }

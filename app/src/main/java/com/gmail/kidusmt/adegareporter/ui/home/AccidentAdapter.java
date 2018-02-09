@@ -1,9 +1,9 @@
 package com.gmail.kidusmt.adegareporter.ui.home;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,11 +23,11 @@ import java.util.List;
 
 public class AccidentAdapter extends RecyclerView.Adapter<AccidentAdapter.MyViewHolder> {
 
-    private Context mContext;
     private List<Accident> accidentList;
+    private HomeContract.Presenter presenter;
 
-    public AccidentAdapter(Context mContext, List<Accident> accidentList) {
-        this.mContext = mContext;
+    public AccidentAdapter(List<Accident> accidentList, HomeContract.Presenter presenter) {
+        this.presenter = presenter;
         this.accidentList = accidentList;
     }
 
@@ -35,31 +35,32 @@ public class AccidentAdapter extends RecyclerView.Adapter<AccidentAdapter.MyView
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.record_card, parent, false);
-        return new MyViewHolder(itemView);
+        return new MyViewHolder(itemView, presenter);
     }
 
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
 
+        Accident accident = accidentList.get(position);
+        Log.e("---->onBindViewHolder",""+accidentList.size());
+        Log.e("---->onBindViewHolder",accident.getLocation());
 
-        Accident movie = accidentList.get(position);
+        holder.accidentLocation.setText(accident.getLocation());
+        holder.accidentDate.setText(accident.getDate());
 
-        holder.accidentLocation.setText(movie.getLocation());
-        holder.accidentDate.setText(movie.getDate());
-
-        File imgFile = new File(movie.getImgPath());
+        File imgFile = new File(accident.getImgPath());
 
         if (imgFile.exists()) {
 
-            Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+            Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getPath());
 
             holder.accidentImg.setImageBitmap(myBitmap);
+
         }
 
+        Log.e("------>getpath",imgFile.getAbsoluteFile().getPath());
+//        Log.e("------>getabsolutePath",imgFile.getAbsolutePath());
 
-        holder.accidentImg.setOnClickListener(
-                v -> Toast.makeText(mContext, "don't have time", Toast.LENGTH_SHORT).show()
-        );
 
     }
 
@@ -71,14 +72,20 @@ public class AccidentAdapter extends RecyclerView.Adapter<AccidentAdapter.MyView
     public class MyViewHolder extends RecyclerView.ViewHolder {
 
         public TextView accidentLocation, accidentDate;//,accidentPlateNumber,accidentDescription;
-        public ImageView accidentImg;
+        public ImageView accidentImg, delete_accident;
 
-        public MyViewHolder(View itemView) {
+        public MyViewHolder(View itemView, final HomeContract.Presenter presenter) {
             super(itemView);
             accidentImg = itemView.findViewById(R.id.iv_movie_card_poster);
             accidentLocation = itemView.findViewById(R.id.tv_movie_card_title);
             accidentDate = itemView.findViewById(R.id.tv_movie_card_rating);
+            delete_accident = itemView.findViewById(R.id.delete_rec);
 
+            accidentImg.setOnClickListener(
+                    v-> presenter.onAccidentClicked(getAdapterPosition()));
+
+            delete_accident.setOnClickListener(v-> Toast.makeText(accidentImg.getContext(),
+                    "don't have time now", Toast.LENGTH_SHORT).show());
         }
     }
 }
