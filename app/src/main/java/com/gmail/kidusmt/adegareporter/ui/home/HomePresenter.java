@@ -7,7 +7,6 @@ import com.gmail.kidusmt.adegareporter.data.AccidentRepo;
 import com.gmail.kidusmt.adegareporter.data.AccidentRepoContract;
 
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Created by KidusMT on 2/9/2018.
@@ -40,13 +39,8 @@ public class HomePresenter implements HomeContract.Presenter {
     public void onAccidentClicked(int position) {
         Accident accident = repository.getAccidents().get(position);
 
-        String details = String.format(Locale.getDefault(),
-                "Location: %s\nDate: %s\nDescription: %s\nPlate: %s",
-                accident.getLocation(), accident.getDate(),accident.getDescription(),
-                accident.getPlate());
-
         //TODO should change the single string into String[]
-        view.showAccidentDetails(details);
+        view.showAccidentDetails(accident);
     }
 
     @Override

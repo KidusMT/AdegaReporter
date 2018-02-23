@@ -44,7 +44,7 @@ public interface HomeContract {
          * Called by the presenter, with the details of the Accident to show on the screen, when a Accident
          * was clicked.
          */
-        void showAccidentDetails(String detail);
+        void showAccidentDetails(Accident accident);
 
         /**
          * Show a List of Accidents on the home screen

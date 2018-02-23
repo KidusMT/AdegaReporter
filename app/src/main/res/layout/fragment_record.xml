@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="com.gmail.kidusmt.adegareporter.ui.home.FragmentRecord">
+    tools:context="com.gmail.kidusmt.adegareporter.ui.home.FragmentTab">
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recycler_view_record"

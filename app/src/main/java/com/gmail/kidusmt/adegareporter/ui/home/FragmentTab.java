@@ -73,8 +73,9 @@ public class FragmentTab extends BaseFragment implements HomeContract.View {
     }
 
     @Override
-    public void showAccidentDetails(String detail) {
-        startActivity(new Intent(getActivity(), DetailAccidentActivity.class));
+    public void showAccidentDetails(Accident accident) {
+        startActivity(new Intent(getActivity(), DetailAccidentActivity.class)
+                .putExtra("accident_id",accident.getId()));
     }
 
     @Override

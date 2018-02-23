@@ -1,8 +1,6 @@
 package com.gmail.kidusmt.adegareporter.ui.home;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -18,7 +16,6 @@ import android.view.MenuItem;
 
 import com.gmail.kidusmt.adegareporter.R;
 import com.gmail.kidusmt.adegareporter.base.view.BaseActivity;
-import com.gmail.kidusmt.adegareporter.ui.post.PostActivity;
 
 import java.util.ArrayList;
 import java.util.List;
