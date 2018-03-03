@@ -12,7 +12,7 @@ public class DetailAccidentPresenter implements DetailAccidentContract.Presenter
 
     public DetailAccidentPresenter(DetailAccidentContract.View view){
         this.view = view;
-        this.repository = AccidentRepo.getInstance();
+//        this.repository = AccidentRepo.getInstance();
     }
 
     @Override

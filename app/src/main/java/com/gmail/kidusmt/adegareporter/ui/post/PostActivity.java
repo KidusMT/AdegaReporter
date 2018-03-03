@@ -133,7 +133,7 @@ public class PostActivity extends BaseActivity implements PostContract.View{
                 accident_temp.setLocation(recordLocation.getText().toString().trim());
                 accident_temp.setDate(recordDate.getText().toString().trim());
                 accident_temp.setDescription(recordDescription.getText().toString().trim());
-                accident_temp.setImgPath(getRealPathFromURI(picUri));
+                accident_temp.setImgPath(getRealPathFromURI(picUri).toString());
                 accident_temp.setPlate(recordPlateNumber.getText().toString().trim());
 
                 //TODO show progress bar here
